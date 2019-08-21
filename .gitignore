@@ -10,7 +10,8 @@ __pycache__/
 instance/
 .webassets-cache
 
-# Virtual environment
+# Environments
+.env
 venv/
 
 # VSCode
