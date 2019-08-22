@@ -1,4 +1,4 @@
-from app import app
+from recommender_api import create_app
 import json
 import unittest
 
@@ -6,7 +6,7 @@ class TestApi(unittest.TestCase):
   """Test case for the flask api"""
 
   def setUp(self):
-    self.app = app
+    self.app = create_app()
     self.client = self.app.test_client()
     self.data = {  # Represents a user
       'likes': [0, 1, 2],
