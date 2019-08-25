@@ -8,7 +8,7 @@ class TestApi(unittest.TestCase):
   def setUp(self):
     self.app = create_app()
     self.client = self.app.test_client()
-    self.data = {  # Represents a user
+    self.user_preferences = {
       'likes': [0, 1, 2],
       'dislikes': [3, 4, 5],
       }
@@ -16,9 +16,9 @@ class TestApi(unittest.TestCase):
   def test_get_recommendation(self):
     for num_recommendations in range(0, 8):
       path = f'/recommend/{num_recommendations}?'
-      for likedItem in self.data['likes']:
+      for likedItem in self.user_preferences['likes']:
         path += f'&likes={likedItem}'
-      for dislikedItem in self.data['dislikes']:
+      for dislikedItem in self.user_preferences['dislikes']:
         path += f'&dislikes={dislikedItem}'
       resp = self.client.get(path, content_type='application/json')
       self.assertEqual(resp.status_code, 200)
