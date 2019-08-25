@@ -10,4 +10,3 @@ def recommend(num_recommendations):
   #dislikes = request.args.getlist('dislikes', type=int)
 
   return {'product_ids': [x for x in range(num_recommendations)]}
-
