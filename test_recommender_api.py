@@ -21,14 +21,20 @@ class TestApi(unittest.TestCase):
       path += f'&dislikes={dislikedItem}'
     return path
 
-  def test_get_recommendation(self):
-    for num_recommendations in range(0, 8):
-      path = self._buildPath(num_recommendations)
+  def _test_n_recommendations(self, n):
+    path = self._buildPath(n)
+    resp = self.client.get(path, content_type='application/json')
+    self.assertEqual(resp.status_code, 200)
+    self.assertEqual(len(json.loads(resp.data)['product_ids']), n)
 
-      resp = self.client.get(path, content_type='application/json')
-      self.assertEqual(resp.status_code, 200)
-      self.assertEqual(len(json.loads(resp.data)['product_ids']), num_recommendations)
+  def test_no_recommendation(self):
+    self._test_n_recommendations(0)
 
+  def test_single_recommendation(self):
+    self._test_n_recommendations(1)
+
+  def test_multiple_recommendations(self):
+    self._test_n_recommendations(2)
 
 if __name__ == '__main__':
   unittest.main()
