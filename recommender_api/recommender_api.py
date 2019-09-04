@@ -1,6 +1,8 @@
 from flask import (
-  Blueprint
+  Blueprint,
+  current_app
 )
+import pandas as pd
 
 bp = Blueprint('recommender_api', __name__)
 
@@ -9,4 +11,6 @@ def recommend(num_recommendations):
   #likes = request.args.getlist('likes', type=int)
   #dislikes = request.args.getlist('dislikes', type=int)
 
-  return {'product_ids': [x for x in range(num_recommendations)]}
+  products = current_app.products
+
+  return {'product_ids': products.sample(num_recommendations).id.tolist()}
