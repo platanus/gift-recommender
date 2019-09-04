@@ -6,13 +6,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
 
 class Preprocessor(object):
-  def __init__(self, dataset_path, text_features, numeric_features):
+  def __init__(self, dataset_path, text_features, numeric_features, categorical_features):
     with open('../mock_dataset/mock_dataset.csv') as f:
       self.df = pd.read_csv(f)
     self.nlp = es_core_news_md.load()
     self.stemmer = SnowballStemmer('spanish')
     self.text_features = text_features
     self.numeric_features = numeric_features
+    self.categorical_features = categorical_features
     self.scaler = {}
     self.model_df = pd.DataFrame()
 
@@ -30,13 +31,14 @@ class Preprocessor(object):
   def standardize(self, feature):
     self.scaler[feature] = StandardScaler()
     scaled_df = self.scaler[feature].fit_transform(self.df[[feature]])
-    self.model_df = pd.concat([self.model_df, pd.DataFrame(scaled_df, columns=[feature])], axis=1)
+    return scaled_df
 
   def preprocess(self):
     vectorizer = {}
     for feature in self.numeric_features:
       #self.model_df = pd.concat([self.model_df, self.df[self.numeric_features]], axis=1)
-      self.standardize(feature)
+      scaled_df = pd.DataFrame(self.standardize(feature), columns=[feature])
+      self.model_df = pd.concat([self.model_df, scaled_df], axis=1)
     for feature in self.text_features:
       self.tokenize(feature)
       vectorizer[feature] = TfidfVectorizer(max_df=0.5)
