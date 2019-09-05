@@ -6,7 +6,7 @@ import unittest
 class TestApi(unittest.TestCase):
     """Test case for the flask api"""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.app = create_app()
         self.client = self.app.test_client()
         self.user_preferences = {
@@ -14,7 +14,7 @@ class TestApi(unittest.TestCase):
             'dislikes': [3, 4, 5],
             }
 
-    def _buildPath(self, num_recommendations):
+    def _buildPath(self, num_recommendations: int) -> str:
         path = f'/recommend/{num_recommendations}?'
         for likedItem in self.user_preferences['likes']:
             path += f'&likes={likedItem}'
@@ -22,19 +22,19 @@ class TestApi(unittest.TestCase):
             path += f'&dislikes={dislikedItem}'
         return path
 
-    def _test_n_recommendations(self, n):
+    def _test_n_recommendations(self, n: int) -> None:
         path = self._buildPath(n)
         resp = self.client.get(path, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(json.loads(resp.data)['product_ids']), n)
 
-    def test_no_recommendation(self):
+    def test_no_recommendation(self) -> None:
         self._test_n_recommendations(0)
 
-    def test_single_recommendation(self):
+    def test_single_recommendation(self) -> None:
         self._test_n_recommendations(1)
 
-    def test_multiple_recommendations(self):
+    def test_multiple_recommendations(self) -> None:
         self._test_n_recommendations(2)
 
 

@@ -3,7 +3,7 @@ import os
 from .data_loader import DatasetLoader
 
 
-def create_app():
+def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY') or 'dev_key'
