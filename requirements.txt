@@ -1,26 +1,10 @@
 aniso8601==7.0.0
 astroid==2.2.5
-<<<<<<< HEAD
-Click==7.0
-Flask==1.1.1
-gunicorn==19.9.0
-isort==4.3.21
-itsdangerous==1.1.0
-Jinja2==2.10.1
-lazy-object-proxy==1.4.1
-MarkupSafe==1.1.1
-mccabe==0.6.1
-pylint==2.3.1
-pytz==2019.2
-six==1.12.0
-typed-ast==1.4.0
-=======
 blis==0.2.4
 certifi==2019.6.16
 chardet==3.0.4
 Click==7.0
 cymem==2.0.2
-es-core-news-md==2.1.0
 Flask==1.1.1
 Flask-SQLAlchemy==2.4.0
 gunicorn==19.9.0
@@ -55,6 +39,5 @@ tqdm==4.35.0
 typed-ast==1.4.0
 urllib3==1.25.3
 wasabi==0.2.2
->>>>>>> 65a64f6... feat(database): connect to database and get products
 Werkzeug==0.15.5
 wrapt==1.11.2
