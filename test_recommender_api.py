@@ -14,16 +14,16 @@ class TestApi(unittest.TestCase):
             'dislikes': [3, 4, 5],
             }
 
-    def _buildPath(self, num_recommendations: int) -> str:
+    def _build_path(self, num_recommendations: int) -> str:
         path = f'/recommend/{num_recommendations}?'
-        for likedItem in self.user_preferences['likes']:
-            path += f'&likes={likedItem}'
-        for dislikedItem in self.user_preferences['dislikes']:
-            path += f'&dislikes={dislikedItem}'
+        for liked_item in self.user_preferences['likes']:
+            path += f'&likes={liked_item}'
+        for disliked_item in self.user_preferences['dislikes']:
+            path += f'&dislikes={disliked_item}'
         return path
 
     def _test_n_recommendations(self, n: int) -> None:
-        path = self._buildPath(n)
+        path = self._build_path(n)
         resp = self.client.get(path, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(json.loads(resp.data)['product_ids']), n)
