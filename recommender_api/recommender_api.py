@@ -2,15 +2,15 @@ from flask import (
   Blueprint,
   current_app
 )
-import pandas as pd
 
 bp = Blueprint('recommender_api', __name__)
 
-@bp.route('/recommend/<int:num_recommendations>', methods=['GET'])
-def recommend(num_recommendations):
-  #likes = request.args.getlist('likes', type=int)
-  #dislikes = request.args.getlist('dislikes', type=int)
 
-  products = current_app.products
+@bp.route('/recommend/<int:num_recommendations>', methods=['GET'])  # type: ignore
+def recommend(num_recommendations: int) -> dict:
+    # likes = request.args.getlist('likes', type=int)
+    # dislikes = request.args.getlist('dislikes', type=int)
 
-  return {'product_ids': products.sample(num_recommendations).id.tolist()}
+    products = current_app.products
+
+    return {'product_ids': products.sample(num_recommendations).id.tolist()}
