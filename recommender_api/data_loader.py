@@ -7,14 +7,14 @@ class DatasetLoader(object):
     def __init__(self) -> None:
         self.cols = ['id', 'name', 'price', 'store_id']
         # DB binding
-        DB_URL = os.environ.get('DATABASE_URL')
-        if not DB_URL:
+        db_url = os.environ.get('DATABASE_URL')
+        if not db_url:
             user = os.environ.get('POSTGRES_USER')
             pw = os.environ.get('POSTGRES_PW')
             url = os.environ.get('POSTGRES_URL')
             db = os.environ.get('POSTGRES_DB')
-            DB_URL = f'postgresql+psycopg2://{user}:{pw}@{url}/{db}'
-        self.engine = create_engine(DB_URL)
+            db_url = f'postgresql+psycopg2://{user}:{pw}@{url}/{db}'
+        self.engine = create_engine(db_url)
         self.data: pd.DataFrame
 
     def fetch_products(self) -> pd.DataFrame:
