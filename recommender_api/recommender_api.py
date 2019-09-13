@@ -14,7 +14,6 @@ def recommend(receiver_id: int, num_recommendations: int) -> dict:
     displayed_products = [id[0] for id in db.session.query(ProductAction.id).filter(
         ProductAction.receiver_id == receiver_id and ProductAction.action_type == 0
     ).all()]
-    print(displayed_products)
 
     result = [r.id for r in Product.query.all()
               if r.id not in displayed_products][:num_recommendations]
