@@ -12,7 +12,7 @@ class TestApi(unittest.TestCase):
         self.user_preferences = {
             'likes': [0, 1, 2],
             'dislikes': [3, 4, 5],
-            }
+        }
 
     def _build_path(self, num_recommendations: int) -> str:
         path = f'/recommend/{num_recommendations}?'

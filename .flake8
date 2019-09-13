@@ -1,2 +1,5 @@
 [flake8]
 max-line-length = 100
+ignore =
+    # import at top, too many circular import fixes
+    E402
