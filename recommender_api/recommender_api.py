@@ -11,7 +11,8 @@ bp = Blueprint('recommender_api', __name__)
 @bp.route('/recommend/<int:receiver_id>/<int:num_recommendations>', methods=['GET'])  # type: ignore
 def recommend(receiver_id: int, num_recommendations: int) -> dict:
 
-    displayed_products = [id[0] for id in db.session.query(ProductAction.id).filter(
+    displayed_products = [product_id[0] for product_id in db.session.query(
+        ProductAction.product_id).filter(
         ProductAction.receiver_id == receiver_id and ProductAction.action_type == 0
     ).all()]
 
