@@ -16,3 +16,6 @@ venv/
 
 # VSCode
 .vscode
+
+# Word embeddings
+.vec
