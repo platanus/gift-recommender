@@ -1,1 +1,1 @@
-web: gunicorn recommender_api:'create_app()'
+web: gunicorn recommender_api:'create_app()' --preload
