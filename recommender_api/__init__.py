@@ -1,6 +1,7 @@
 from flask import Flask
 import os
 from .models import db
+from .recommender_model import RecommenderModel
 
 
 def create_app() -> Flask:
@@ -21,6 +22,10 @@ def create_app() -> Flask:
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
+
+    app.model = RecommenderModel()
+    with app.app_context():
+        app.model.load_products()
 
     from . import recommender_api
     app.register_blueprint(recommender_api.bp)

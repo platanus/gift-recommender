@@ -14,3 +14,11 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
     updated_at = db.Column(db.DateTime, nullable=False)
     # promoted = db.Column(db.Boolean)
+
+    @staticmethod
+    def get_all() -> list:
+        return Product.query.all()
+
+    @staticmethod
+    def get(product_id: int) -> 'Product':
+        return Product.query.get(product_id)
