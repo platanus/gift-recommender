@@ -13,9 +13,6 @@ class Preprocessor(object):
         S3.ensure_file(embeddings)
         self.vectors = KeyedVectors.load_word2vec_format(embeddings)
 
-    def get_products_vectors(self, products: list) -> list:
-        return np.array([self.compute_vector(prod) for prod in products])
-
     def compute_vector(self, product) -> np.array:
         tokens = product.name.lower().split()
         vectors = np.array([self.get_vector(token) for token in tokens])
