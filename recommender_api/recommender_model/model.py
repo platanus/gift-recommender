@@ -26,15 +26,11 @@ class RecommenderModel(object):
 
     def compute_receiver_vector(self, receiver_likes: set) -> np.array:
         liked_products_vectors = np.array(
-            [self.vector_from_product_id(product_id) for product_id in receiver_likes])
+            [self.vector_from_product(Product.get(product_id)) for product_id in receiver_likes])
         return np.average(liked_products_vectors, axis=0)
 
     def vector_from_product(self, product: Product) -> np.array:
         return self.product_vector.setdefault(product.id, self.preproc.compute_vector(product))
-
-    def vector_from_product_id(self, product_id: int) -> np.array:
-        return self.product_vector.setdefault(
-            product_id, self.preproc.compute_vector(Product.get(product_id)))
 
     @staticmethod
     def default_recommendation(num_recommendations: int) -> list:
