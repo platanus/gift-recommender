@@ -18,4 +18,4 @@ venv/
 .vscode
 
 # Word embeddings
-.vec
+*.vec

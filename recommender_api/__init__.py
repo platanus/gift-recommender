@@ -30,4 +30,8 @@ def create_app() -> Flask:
     from . import recommender_api
     app.register_blueprint(recommender_api.bp)
 
+    with app.app_context():
+        app.model = RecommenderModel()
+        app.model.load_products()
+
     return app

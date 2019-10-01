@@ -13,12 +13,13 @@ class RecommenderModel(object):
         for product in Product.get_all():
             self.product_vector[product.id] = self.preproc.compute_vector(product)
 
-    def recommend(self, receiver_id: int, num_recommendations: int) -> list:
+    def recommend(self, receiver_id: int, num_recommendations: int,
+                  min_price: float = 0.0, max_price: float = float('inf')) -> list:
         receiver_likes = self.get_receiver_likes(receiver_id)
         if len(receiver_likes) == 0:
             return self.default_recommendation(num_recommendations)
         receiver_vector = self.compute_receiver_vector(receiver_likes)
-        candidate_products = self.get_candidate_products(receiver_id)
+        candidate_products = self.get_candidate_products(receiver_id, min_price, max_price)
         recommended_products = heapq.nlargest(
             num_recommendations, candidate_products,
             key=lambda prod: cosine_similarity(receiver_vector, self.vector_from_product(prod)))
@@ -42,11 +43,13 @@ class RecommenderModel(object):
         return {product_id[0] for product_id in ProductAction.get_liked(receiver_id)}
 
     @staticmethod
-    def get_candidate_products(receiver_id: int) -> list:
+    def get_candidate_products(receiver_id: int, min_price: float, max_price: float) -> list:
         displayed_products_ids = {
             product_id[0] for product_id in ProductAction.get_displayed(receiver_id)}
         return [
-            product for product in Product.get_all() if product.id not in displayed_products_ids]
+            product for product in Product.get_all() if
+            (product.id not in displayed_products_ids) and (min_price <= product.price <= max_price)
+        ]
 
 
 def cosine_similarity(vec1: np.array, vec2: np.array) -> float:
