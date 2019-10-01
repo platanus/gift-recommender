@@ -1,0 +1,10 @@
+{
+    "buildpacks": [
+        {
+            "url": "https://github.com/platanus/s3-download-buildpack.git"
+        },
+        {
+            "url": "heroku/python"
+        }
+    ]
+}
