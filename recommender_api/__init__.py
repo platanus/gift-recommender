@@ -23,11 +23,11 @@ def create_app() -> Flask:
 
     db.init_app(app)
 
-    app.model = RecommenderModel()
-    with app.app_context():
-        app.model.load_products()
-
     from . import recommender_api
     app.register_blueprint(recommender_api.bp)
+
+    with app.app_context():
+        app.model = RecommenderModel()
+        app.model.load_products()
 
     return app
