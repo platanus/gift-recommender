@@ -1,0 +1,1 @@
+s3://${BUCKET_NAME}/embeddings-xs-model.vec
