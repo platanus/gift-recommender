@@ -1,8 +1,6 @@
 from gensim.models import KeyedVectors
 import numpy as np
-from .s3_manager import S3
 
-# embeddings = 'recommender_api/recommender_model/embeddings-xs-model.vec'
 embeddings = 'embeddings-xs-model.vec'
 
 
@@ -11,7 +9,6 @@ class Preprocessor(object):
     Compute a vector representation for the products
     '''
     def __init__(self, embeddings: str = embeddings) -> None:
-        S3.ensure_file(embeddings)
         self.vectors = KeyedVectors.load_word2vec_format(embeddings)
 
     def compute_vector(self, product) -> np.array:
