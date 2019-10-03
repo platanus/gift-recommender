@@ -12,14 +12,14 @@ class RecommenderModel(object):
         products = Product.get_all()
         threading.Thread(target=self.initialize, args=(products,)).start()
 
-    def initialize(self, products) -> None:
+    def initialize(self, products: list) -> None:
         print('Loading vectors...')
         self.preproc = Preprocessor()
         print('Loading products...')
         self.load_products(products)
         print('Model Initialized.')
 
-    def load_products(self, products):
+    def load_products(self, products: list) -> None:
         for product in products:
             self.product_vector[product.id] = self.preproc.compute_vector(product)
 
