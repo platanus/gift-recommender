@@ -28,6 +28,5 @@ def create_app() -> Flask:
 
     with app.app_context():
         app.model = RecommenderModel()
-        app.model.load_products()
 
     return app

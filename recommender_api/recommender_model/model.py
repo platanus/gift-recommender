@@ -2,15 +2,25 @@ from .preprocessor import Preprocessor
 from ..models import Product, ProductAction  # noqa T484
 import numpy as np
 import heapq
+import threading
 
 
 class RecommenderModel(object):
     def __init__(self) -> None:
-        self.preproc = Preprocessor()
+        self.preproc: Preprocessor
         self.product_vector: dict = {}
+        products = Product.get_all()
+        threading.Thread(target=self.initialize, args=(products,)).start()
 
-    def load_products(self) -> None:
-        for product in Product.get_all():
+    def initialize(self, products) -> None:
+        print('Loading vectors...')
+        self.preproc = Preprocessor()
+        print('Loading products...')
+        self.load_products(products)
+        print('Model Initialized.')
+
+    def load_products(self, products):
+        for product in products:
             self.product_vector[product.id] = self.preproc.compute_vector(product)
 
     def recommend(self, receiver_id: int, num_recommendations: int,
