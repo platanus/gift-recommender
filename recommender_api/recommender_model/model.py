@@ -17,7 +17,7 @@ class RecommenderModel(object):
                   min_price: float = 0.0, max_price: float = float('inf')) -> list:
         receiver_likes = self.get_receiver_likes(receiver_id)
         if len(receiver_likes) == 0:
-            return self.default_recommendation(num_recommendations)
+            return self.default_recommendation(num_recommendations, min_price, max_price)
         receiver_vector = self.compute_receiver_vector(receiver_likes)
         candidate_products = self.get_candidate_products(receiver_id, min_price, max_price)
         recommended_products = heapq.nlargest(
@@ -34,9 +34,12 @@ class RecommenderModel(object):
         return self.product_vector.setdefault(product.id, self.preproc.compute_vector(product))
 
     @staticmethod
-    def default_recommendation(num_recommendations: int) -> list:
-        products_ids = [product.id for product in Product.query.all()]
-        return np.random.choice(products_ids, num_recommendations, replace=False).tolist()
+    def default_recommendation(num_recommendations: int,
+                               min_price: float, max_price: float) -> list:
+        products_ids = [product.id for product in Product.query.all()
+                        if (min_price <= product.price <= max_price)]
+        return np.random.choice(products_ids, min(num_recommendations, len(products_ids)),
+                                replace=False).tolist()
 
     @staticmethod
     def get_receiver_likes(receiver_id: int) -> set:
