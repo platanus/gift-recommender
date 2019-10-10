@@ -13,7 +13,7 @@ class Product(db.Model):
     store_id = db.Column(db.BigInteger, db.ForeignKey('stores.id'))
     created_at = db.Column(db.DateTime, nullable=False)
     updated_at = db.Column(db.DateTime, nullable=False)
-    # promoted = db.Column(db.Boolean)
+    promoted = db.Column(db.Boolean)
 
     @staticmethod
     def get_all() -> list:
