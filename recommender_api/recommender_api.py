@@ -7,10 +7,6 @@ bp = Blueprint('recommender_api', __name__)
 def recommend(receiver_id: int, num_recommendations: int) -> dict:
     min_price = request.args.get('min_price', 0.0, float)
     max_price = request.args.get('max_price', float('inf'), float)
+    min_promoted = request.args.get('min_promoted', 0, int)
     return {'product_ids': current_app.model.recommend(
-            receiver_id, num_recommendations, min_price, max_price)}
-
-
-@bp.route('/recommend/<int:num_recommendations>', methods=['GET'])  # type: ignore
-def default_recommendation(num_recommendations: int) -> dict:
-    return {'product_ids': current_app.model.default_recommendation(num_recommendations)}
+            receiver_id, num_recommendations, min_promoted, min_price, max_price)}
