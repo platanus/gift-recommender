@@ -20,6 +20,11 @@ class RecommenderModel(object):
         if len(receiver_likes) == 0:
             return self.default_recommendation(num_recommendations, candidate_products)
         receiver_vector = self.compute_receiver_vector(receiver_likes)
+        return self.top_products_with_promoted(
+            receiver_vector, candidate_products, num_recommendations, min_promoted)
+
+    def top_products_with_promoted(self, receiver_vector: list, candidate_products: list,
+                                   num_recommendations: int, min_promoted: int) -> list:
         priority_queue = []
         for product in candidate_products:
             heapq.heappush(priority_queue,
@@ -27,9 +32,8 @@ class RecommenderModel(object):
                             product.promoted, product.id, product))
         recommended_products = []
         non_promoted_filler_products = []
-        while min_promoted > 0 or len(recommended_products) < num_recommendations:
-            if len(priority_queue) == 0:
-                break
+        while len(priority_queue) and\
+                (min_promoted > 0 or len(recommended_products) < num_recommendations):
             product = heapq.heappop(priority_queue)[-1]
             if product.promoted:
                 recommended_products.append(product.id)
