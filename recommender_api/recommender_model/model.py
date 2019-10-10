@@ -13,17 +13,38 @@ class RecommenderModel(object):
         for product in Product.get_all():
             self.product_vector[product.id] = self.preproc.compute_vector(product)
 
-    def recommend(self, receiver_id: int, num_recommendations: int,
+    def recommend(self, receiver_id: int, num_recommendations: int, min_promoted: int = 0,
                   min_price: float = 0.0, max_price: float = float('inf')) -> list:
+        candidate_products = self.get_candidate_products(receiver_id, min_price, max_price)
         receiver_likes = self.get_receiver_likes(receiver_id)
         if len(receiver_likes) == 0:
-            return self.default_recommendation(num_recommendations, min_price, max_price)
+            return self.default_recommendation(num_recommendations, candidate_products)
         receiver_vector = self.compute_receiver_vector(receiver_likes)
-        candidate_products = self.get_candidate_products(receiver_id, min_price, max_price)
-        recommended_products = heapq.nlargest(
-            num_recommendations, candidate_products,
-            key=lambda prod: cosine_similarity(receiver_vector, self.vector_from_product(prod)))
-        return [product.id for product in recommended_products]
+        return self.top_products_with_promoted(
+            receiver_vector, candidate_products, num_recommendations, min_promoted)
+
+    def top_products_with_promoted(self, receiver_vector: list, candidate_products: list,
+                                   num_recommendations: int, min_promoted: int) -> list:
+        priority_queue = []
+        for product in candidate_products:
+            heapq.heappush(priority_queue,
+                           (-cosine_similarity(receiver_vector, self.vector_from_product(product)),
+                            product.promoted, product.id, product))
+        recommended_products = []
+        non_promoted_filler_products = []
+        while len(priority_queue) and\
+                (min_promoted > 0 or len(recommended_products) < num_recommendations):
+            product = heapq.heappop(priority_queue)[-1]
+            if product.promoted:
+                recommended_products.append(product.id)
+                min_promoted -= 1
+            elif num_recommendations - len(recommended_products) > min_promoted:
+                recommended_products.append(product.id)
+            else:
+                non_promoted_filler_products.append(product.id)
+        missing_products = num_recommendations - len(recommended_products)
+        recommended_products.extend(non_promoted_filler_products[:missing_products])
+        return recommended_products
 
     def compute_receiver_vector(self, receiver_likes: set) -> np.array:
         liked_products_vectors = np.array(
@@ -34,10 +55,8 @@ class RecommenderModel(object):
         return self.product_vector.setdefault(product.id, self.preproc.compute_vector(product))
 
     @staticmethod
-    def default_recommendation(num_recommendations: int,
-                               min_price: float, max_price: float) -> list:
-        products_ids = [product.id for product in Product.query.all()
-                        if (min_price <= product.price <= max_price)]
+    def default_recommendation(num_recommendations: int, candidate_products: list) -> list:
+        products_ids = [product.id for product in candidate_products]
         return np.random.choice(products_ids, min(num_recommendations, len(products_ids)),
                                 replace=False).tolist()
 
