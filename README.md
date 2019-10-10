@@ -20,27 +20,27 @@ You will need to specify the following environment variables:
 
 Flask:
 
-* FLASK_APP=recommender_api
-* FLASK_ENV
-* SECRET_KEY
-* APP_SETTINGS
+* `FLASK_APP=recommender_api`
+* `FLASK_ENV`
+* `SECRET_KEY`
+* `APP_SETTINGS`
 
 Postgres db:
 
 either
 
-* POSTGRES_URL
-* POSTGRES_USER
-* POSTGRES_PW
-* POSTGRES_DB
+* `POSTGRES_URL`
+* `POSTGRES_USER`
+* `POSTGRES_PW`
+* `POSTGRES_DB`
 
 and/or
 
-* DATABASE_URL
+* `DATABASE_URL`
 
 AWS Bucket:
 
-* AWS_ACCESS_KEY_ID
-* AWS_SECRET_ACCESS_KEY
-* AWS_REGION
-* BUCKET_NAME
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+* `AWS_REGION`
+* `BUCKET_NAME`
