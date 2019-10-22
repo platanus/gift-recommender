@@ -18,7 +18,8 @@ class RecommenderModel(object):
         candidate_products = self.get_candidate_products(receiver_id, min_price, max_price)
         receiver_likes = self.get_receiver_likes(receiver_id)
         if len(receiver_likes) == 0:
-            return self.default_recommendation(num_recommendations, candidate_products)
+            return self.default_recommendation(
+                num_recommendations, min_promoted, candidate_products)
         receiver_vector = self.compute_receiver_vector(receiver_likes)
         return self.top_products_with_promoted(
             receiver_vector, candidate_products, num_recommendations, min_promoted)
@@ -55,10 +56,17 @@ class RecommenderModel(object):
         return self.product_vector.setdefault(product.id, self.preproc.compute_vector(product))
 
     @staticmethod
-    def default_recommendation(num_recommendations: int, candidate_products: list) -> list:
-        products_ids = [product.id for product in candidate_products]
-        return np.random.choice(products_ids, min(num_recommendations, len(products_ids)),
-                                replace=False).tolist()
+    def default_recommendation(
+            num_recommendations: int, min_promoted: int, candidate_products: list) -> list:
+        promoted_products_ids, non_promoted_products_ids =\
+            split_promoted_products(candidate_products)
+        num_promoted = min(num_recommendations, min_promoted, len(promoted_products_ids))
+        result = []
+        result.extend(np.random.choice(promoted_products_ids, num_promoted, replace=False).tolist())
+        num_non_promoted = min((num_recommendations - num_promoted), len(non_promoted_products_ids))
+        result.extend(np.random.choice(
+            non_promoted_products_ids, num_non_promoted, replace=False).tolist())
+        return result
 
     @staticmethod
     def get_receiver_likes(receiver_id: int) -> set:
@@ -72,6 +80,17 @@ class RecommenderModel(object):
             product for product in Product.get_all() if
             (product.id not in displayed_products_ids) and (min_price <= product.price <= max_price)
         ]
+
+
+def split_promoted_products(candidate_products: list) -> tuple:
+    promoted_products_ids = []
+    non_promoted_products_ids = []
+    for product in candidate_products:
+        if product.promoted:
+            promoted_products_ids.append(product.id)
+        else:
+            non_promoted_products_ids.append(product.id)
+    return promoted_products_ids, non_promoted_products_ids
 
 
 def cosine_similarity(vec1: np.array, vec2: np.array) -> float:
