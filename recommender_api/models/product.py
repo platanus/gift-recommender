@@ -14,6 +14,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
     updated_at = db.Column(db.DateTime, nullable=False)
     promoted = db.Column(db.Boolean)
+    deleted = db.Column(db.Boolean)
 
     @staticmethod
     def get_all() -> list:
