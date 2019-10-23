@@ -78,8 +78,14 @@ class RecommenderModel(object):
             product_id[0] for product_id in ProductAction.get_displayed(receiver_id)}
         return [
             product for product in Product.get_all() if
-            (product.id not in displayed_products_ids) and (min_price <= product.price <= max_price)
+            is_recommendable(product, displayed_products_ids, min_price, max_price)
         ]
+
+
+def is_recommendable(
+        product: 'Product', displayed_products_ids: set, min_price: int, max_price: int) -> bool:
+    return not product.deleted and (product.id not in displayed_products_ids) and\
+        (min_price <= product.price <= max_price)
 
 
 def split_promoted_products(candidate_products: list) -> tuple:
