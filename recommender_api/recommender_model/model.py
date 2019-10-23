@@ -1,5 +1,5 @@
 from .preprocessor import Preprocessor
-from ..models import Product, ProductAction  # noqa T484
+from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
 import heapq
 
@@ -30,13 +30,13 @@ class RecommenderModel(object):
         for product in candidate_products:
             heapq.heappush(priority_queue,
                            (-cosine_similarity(receiver_vector, self.vector_from_product(product)),
-                            product.promoted, product.id, product))
+                            not is_product_promoted(product), product.id, product))
         recommended_products = []
         non_promoted_filler_products = []
         while len(priority_queue) and\
                 (min_promoted > 0 or len(recommended_products) < num_recommendations):
             product = heapq.heappop(priority_queue)[-1]
-            if product.promoted:
+            if is_product_promoted(product):
                 recommended_products.append(product.id)
                 min_promoted -= 1
             elif num_recommendations - len(recommended_products) > min_promoted:
@@ -86,7 +86,7 @@ def split_promoted_products(candidate_products: list) -> tuple:
     promoted_products_ids = []
     non_promoted_products_ids = []
     for product in candidate_products:
-        if product.promoted:
+        if is_product_promoted(product):
             promoted_products_ids.append(product.id)
         else:
             non_promoted_products_ids.append(product.id)
@@ -95,3 +95,7 @@ def split_promoted_products(candidate_products: list) -> tuple:
 
 def cosine_similarity(vec1: np.array, vec2: np.array) -> float:
     return np.inner(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
+
+def is_product_promoted(product: 'Product') -> bool:
+    return product.promoted and Store.get(product.store_id).has_enough_balance
