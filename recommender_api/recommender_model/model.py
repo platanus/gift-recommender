@@ -11,6 +11,7 @@ class RecommenderModel(object):
         self.preproc = Preprocessor()
         self.product_vector_index: dict = {}
         self._product_vector: np.array
+        self.initial_dimensions: int = 12
         self.col_transformer = ColumnTransformer(
             [("num_standardize", StandardScaler(), slice(0, 11)),  # First 11 dims are numerical
              ("store_category", OneHotEncoder(
@@ -19,7 +20,7 @@ class RecommenderModel(object):
 
     def load_products(self) -> None:
         products = Product.get_all()
-        self._product_vector = np.empty((len(products), 12))  # 12: number of initial dimensions
+        self._product_vector = np.empty((len(products), self.initial_dimensions))
         for index, product in enumerate(products):
             self._product_vector[index] = self.preproc.compute_vector(product)
             self.product_vector_index[product.id] = index
@@ -27,12 +28,15 @@ class RecommenderModel(object):
 
     def get_product_vector(self, product: 'Product') -> np.array:
         if product.id not in self.product_vector_index:
-            self.product_vector_index[product.id] = len(self._product_vector)
-            vector = [self.preproc.compute_vector(product)]
-            self.col_transformer.named_transformers['num_standardize'].partial_fit(vector)
-            self._product_vector = np.append(self._product_vector, vector, axis=0)
+            self.add_product_vector(product)
         return self.col_transformer.transform(
             [self._product_vector[self.product_vector_index[product.id]]])
+
+    def add_product_vector(self, product: 'Product') -> None:
+        self.product_vector_index[product.id] = len(self._product_vector)
+        vector = [self.preproc.compute_vector(product)]
+        self.col_transformer.named_transformers['num_standardize'].partial_fit(vector)
+        self._product_vector = np.append(self._product_vector, vector, axis=0)
 
     def recommend(self, receiver_id: int, num_recommendations: int, min_promoted: int = 0,
                   min_price: float = 0.0, max_price: float = float('inf')) -> list:
