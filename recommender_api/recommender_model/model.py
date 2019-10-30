@@ -1,4 +1,6 @@
 from .preprocessor import Preprocessor
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
 import heapq
@@ -7,11 +9,34 @@ import heapq
 class RecommenderModel(object):
     def __init__(self) -> None:
         self.preproc = Preprocessor()
-        self.product_vector: dict = {}
+        self.product_vector_index: dict = {}
+        self._product_vector: np.array
+        self.initial_dimensions: int = 12
+        self.col_transformer = ColumnTransformer(
+            [("num_standardize", StandardScaler(), slice(0, 11)),  # First 11 dims are numerical
+             ("store_category", OneHotEncoder(
+                 categories='auto', dtype='int', handle_unknown='ignore'), slice(11, None))]
+        )
 
     def load_products(self) -> None:
-        for product in Product.get_all():
-            self.product_vector[product.id] = self.preproc.compute_vector(product)
+        products = Product.get_all()
+        self._product_vector = np.empty((len(products), self.initial_dimensions))
+        for index, product in enumerate(products):
+            self._product_vector[index] = self.preproc.compute_vector(product)
+            self.product_vector_index[product.id] = index
+        self.col_transformer.fit(self._product_vector)
+
+    def get_product_vector(self, product: 'Product') -> np.array:
+        if product.id not in self.product_vector_index:
+            self.add_product_vector(product)
+        return self.col_transformer.transform(
+            [self._product_vector[self.product_vector_index[product.id]]])
+
+    def add_product_vector(self, product: 'Product') -> None:
+        self.product_vector_index[product.id] = len(self._product_vector)
+        vector = [self.preproc.compute_vector(product)]
+        self.col_transformer.named_transformers['num_standardize'].partial_fit(vector)
+        self._product_vector = np.append(self._product_vector, vector, axis=0)
 
     def recommend(self, receiver_id: int, num_recommendations: int, min_promoted: int = 0,
                   min_price: float = 0.0, max_price: float = float('inf')) -> list:
@@ -26,12 +51,12 @@ class RecommenderModel(object):
 
     def top_products_with_promoted(self, receiver_vector: list, candidate_products: list,
                                    num_recommendations: int, min_promoted: int) -> list:
-        priority_queue = []
+        priority_queue: list = []
         for product in candidate_products:
             heapq.heappush(priority_queue,
-                           (-cosine_similarity(receiver_vector, self.vector_from_product(product)),
+                           (-cosine_similarity(receiver_vector, self.get_product_vector(product)),
                             not is_product_promoted(product), product.id, product))
-        recommended_products = []
+        recommended_products: list = []
         non_promoted_filler_products = []
         while len(priority_queue) and\
                 (min_promoted > 0 or len(recommended_products) < num_recommendations):
@@ -49,11 +74,8 @@ class RecommenderModel(object):
 
     def compute_receiver_vector(self, receiver_likes: set) -> np.array:
         liked_products_vectors = np.array(
-            [self.vector_from_product(Product.get(product_id)) for product_id in receiver_likes])
+            [self.get_product_vector(Product.get(product_id)) for product_id in receiver_likes])
         return np.average(liked_products_vectors, axis=0)
-
-    def vector_from_product(self, product: Product) -> np.array:
-        return self.product_vector.setdefault(product.id, self.preproc.compute_vector(product))
 
     @staticmethod
     def default_recommendation(
@@ -61,7 +83,7 @@ class RecommenderModel(object):
         promoted_products_ids, non_promoted_products_ids =\
             split_promoted_products(candidate_products)
         num_promoted = min(num_recommendations, min_promoted, len(promoted_products_ids))
-        result = []
+        result: list = []
         result.extend(np.random.choice(promoted_products_ids, num_promoted, replace=False).tolist())
         num_non_promoted = min((num_recommendations - num_promoted), len(non_promoted_products_ids))
         result.extend(np.random.choice(
@@ -82,8 +104,8 @@ class RecommenderModel(object):
         ]
 
 
-def is_recommendable(
-        product: 'Product', displayed_products_ids: set, min_price: int, max_price: int) -> bool:
+def is_recommendable(product: 'Product', displayed_products_ids: set,
+                     min_price: float, max_price: float) -> bool:
     return not product.deleted and (product.id not in displayed_products_ids) and\
         (min_price <= product.price <= max_price)
 
