@@ -14,7 +14,7 @@ class RecommenderModel(object):
         self.col_transformer = ColumnTransformer(
             [("num_standardize", StandardScaler(), slice(0, 11)),  # First 11 dims are numerical
              ("store_category", OneHotEncoder(
-                 categories='auto', dtype='int', handle_unknown='ignore'), [-1])]
+                 categories='auto', dtype='int', handle_unknown='ignore'), slice(11, None))]
         )
 
     def load_products(self) -> None:
