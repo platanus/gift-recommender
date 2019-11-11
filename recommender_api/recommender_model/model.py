@@ -5,6 +5,7 @@ from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
 import heapq
 from .s3_manager import S3
+import pickle
 
 
 class RecommenderModel(object):
@@ -20,11 +21,19 @@ class RecommenderModel(object):
         )
 
     def load_product_vectors(self, filepath: str) -> None:
-        S3.ensure_file(filepath)
+        vectors = f'{filepath}.npy'
+        indeces = f'{filepath}_index.pkl'
+        S3.ensure_file(vectors)
+        S3.ensure_file(indeces)
         self._product_vector = np.load(filepath)
+        with open(indeces) as f:
+            self.product_vector_index = pickle.load(f)
+        self.col_transformer.fit(self._product_vector)
 
     def save_vectors(self, filename: str) -> None:
-        np.save(filename, self._product_vector)
+        np.save(f'{filename}.npy', self._product_vector)
+        with open(f'{filename}_index.pkl', 'wb') as f:
+            pickle.dump(self.product_vector_index, f)
 
     def load_products(self) -> None:
         products = Product.get_all()
