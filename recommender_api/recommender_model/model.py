@@ -11,11 +11,11 @@ class RecommenderModel(object):
         self.preproc = Preprocessor()
         self.product_vector_index: dict = {}
         self._product_vector: np.array
-        self.initial_dimensions: int = 12
+        self.initial_dimensions: int = 1292
         self.col_transformer = ColumnTransformer(
-            [("num_standardize", StandardScaler(), slice(0, 11)),  # First 11 dims are numerical
+            [("num_standardize", StandardScaler(), slice(0, 1291)),  # First 1291 dims are numerical
              ("store_category", OneHotEncoder(
-                 categories='auto', dtype='int', handle_unknown='ignore'), slice(11, None))]
+                 categories='auto', dtype='int', handle_unknown='ignore'), slice(1291, None))]
         )
 
     def load_products(self) -> None:
@@ -34,9 +34,9 @@ class RecommenderModel(object):
 
     def add_product_vector(self, product: 'Product') -> None:
         self.product_vector_index[product.id] = len(self._product_vector)
-        vector = [self.preproc.compute_vector(product)]
-        self.col_transformer.named_transformers['num_standardize'].partial_fit(vector)
-        self._product_vector = np.append(self._product_vector, vector, axis=0)
+        vector = self.preproc.compute_vector(product)
+        self.col_transformer.named_transformers_['num_standardize'].partial_fit([vector[:-1]])
+        self._product_vector = np.append(self._product_vector, [vector], axis=0)
 
     def recommend(self, receiver_id: int, num_recommendations: int, min_promoted: int = 0,
                   min_price: float = 0.0, max_price: float = float('inf')) -> list:
