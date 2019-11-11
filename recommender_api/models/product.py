@@ -1,4 +1,4 @@
-from . import db
+from . import db, ActiveStorageAttachments, ActiveStorageBlob
 
 
 class Product(db.Model):
@@ -9,12 +9,12 @@ class Product(db.Model):
     price = db.Column(db.Float)
     clicks = db.Column(db.Integer)
     link = db.Column(db.String())
-    # clicks_cost = db.Column(db.Float)
     store_id = db.Column(db.BigInteger, db.ForeignKey('stores.id'))
     created_at = db.Column(db.DateTime, nullable=False)
     updated_at = db.Column(db.DateTime, nullable=False)
     promoted = db.Column(db.Boolean)
     deleted = db.Column(db.Boolean)
+    attachments = db.relationship('ActiveStorageAttachments', backref='product', lazy=True)
 
     @staticmethod
     def get_all() -> list:
@@ -23,3 +23,7 @@ class Product(db.Model):
     @staticmethod
     def get(product_id: int) -> 'Product':
         return Product.query.get(product_id)
+
+    def get_image_key(self) -> str:
+        blob_id = ActiveStorageAttachments.get_image_blob_from_product(self.id)
+        return ActiveStorageBlob.get(blob_id).key
