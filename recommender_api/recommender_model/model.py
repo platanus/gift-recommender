@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
 import heapq
+from .s3_manager import S3
 
 
 class RecommenderModel(object):
@@ -17,6 +18,13 @@ class RecommenderModel(object):
              ("store_category", OneHotEncoder(
                  categories='auto', dtype='int', handle_unknown='ignore'), slice(1291, None))]
         )
+
+    def load_product_vectors(self, filepath: str) -> None:
+        S3.ensure_file(filepath)
+        self._product_vector = np.load(filepath)
+
+    def save_vectors(self, filename: str) -> None:
+        np.save(filename, self._product_vector)
 
     def load_products(self) -> None:
         products = Product.get_all()

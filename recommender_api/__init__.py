@@ -28,6 +28,6 @@ def create_app() -> Flask:
 
     with app.app_context():
         app.model = RecommenderModel()
-        app.model.load_products()
+        app.model.load_product_vectors('product_vectors.npy')
 
     return app
