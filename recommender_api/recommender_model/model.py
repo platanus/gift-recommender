@@ -25,8 +25,8 @@ class RecommenderModel(object):
         indeces = f'{filepath}_index.pkl'
         S3.ensure_file(vectors)
         S3.ensure_file(indeces)
-        self._product_vector = np.load(filepath)
-        with open(indeces) as f:
+        self._product_vector = np.load(vectors)
+        with open(indeces, 'rb') as f:
             self.product_vector_index = pickle.load(f)
         self.col_transformer.fit(self._product_vector)
 
