@@ -106,8 +106,8 @@ class RecommenderModel(object):
 
 def is_recommendable(product: 'Product', displayed_products_ids: set,
                      min_price: float, max_price: float) -> bool:
-    return not product.deleted and (product.id not in displayed_products_ids) and\
-        (min_price <= product.price <= max_price)
+    return not product.deleted and product.display and\
+        (product.id not in displayed_products_ids) and (min_price <= product.price <= max_price)
 
 
 def split_promoted_products(candidate_products: list) -> tuple:
