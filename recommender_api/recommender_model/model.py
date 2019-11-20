@@ -3,6 +3,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
+from scipy import sparse
 import heapq
 
 
@@ -29,8 +30,11 @@ class RecommenderModel(object):
     def get_product_vector(self, product: 'Product') -> np.array:
         if product.id not in self.product_vector_index:
             self.add_product_vector(product)
-        return self.col_transformer.transform(
+        res = self.col_transformer.transform(
             [self._product_vector[self.product_vector_index[product.id]]])
+        if isinstance(res, sparse.csr.csr_matrix):
+            res = res.todense()
+        return res
 
     def add_product_vector(self, product: 'Product') -> None:
         self.product_vector_index[product.id] = len(self._product_vector)
