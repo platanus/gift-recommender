@@ -1,10 +1,9 @@
 from flask import Flask
 import os
-from .models import db
-from .recommender_model import RecommenderModel
+from ..models import db
+from .model import RecommenderModel
 
-
-def create_app() -> Flask:
+if __name__ == '__main__':
     app = Flask(__name__)
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY') or 'dev_key'
@@ -23,11 +22,7 @@ def create_app() -> Flask:
 
     db.init_app(app)
 
-    from . import recommender_api
-    app.register_blueprint(recommender_api.bp)
-
     with app.app_context():
-        app.model = RecommenderModel()
-        app.model.load_product_vectors('product_vectors')
-
-    return app
+        model = RecommenderModel()
+        model.load_products()
+        model.save_vectors('product_vectors')

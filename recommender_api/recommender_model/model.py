@@ -5,6 +5,8 @@ from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
 from scipy import sparse
 import heapq
+from .s3_manager import S3
+import pickle
 
 
 class RecommenderModel(object):
@@ -12,12 +14,27 @@ class RecommenderModel(object):
         self.preproc = Preprocessor()
         self.product_vector_index: dict = {}
         self._product_vector: np.array
-        self.initial_dimensions: int = 12
+        self.initial_dimensions: int = 32
         self.col_transformer = ColumnTransformer(
-            [("num_standardize", StandardScaler(), slice(0, 11)),  # First 11 dims are numerical
+            [("num_standardize", StandardScaler(), slice(0, 31)),  # First 31 dims are numerical
              ("store_category", OneHotEncoder(
-                 categories='auto', dtype='int', handle_unknown='ignore'), slice(11, None))]
+                 categories='auto', dtype='int', handle_unknown='ignore'), slice(31, None))]
         )
+
+    def load_product_vectors(self, filename: str) -> None:
+        vectors = f'{filename}.npy'
+        indexes = f'{filename}_index.pkl'
+        S3.ensure_file(vectors)
+        S3.ensure_file(indexes)
+        self._product_vector = np.load(vectors)
+        with open(indexes, 'rb') as f:
+            self.product_vector_index = pickle.load(f)
+        self.col_transformer.fit(self._product_vector)
+
+    def save_vectors(self, filename: str) -> None:
+        np.save(f'{filename}.npy', self._product_vector)
+        with open(f'{filename}_index.pkl', 'wb') as f:
+            pickle.dump(self.product_vector_index, f)
 
     def load_products(self) -> None:
         products = Product.get_all()
@@ -38,9 +55,9 @@ class RecommenderModel(object):
 
     def add_product_vector(self, product: 'Product') -> None:
         self.product_vector_index[product.id] = len(self._product_vector)
-        vector = [self.preproc.compute_vector(product)]
-        self.col_transformer.named_transformers['num_standardize'].partial_fit(vector)
-        self._product_vector = np.append(self._product_vector, vector, axis=0)
+        vector = self.preproc.compute_vector(product)
+        self.col_transformer.named_transformers_['num_standardize'].partial_fit([vector[:-1]])
+        self._product_vector = np.append(self._product_vector, [vector], axis=0)
 
     def recommend(self, receiver_id: int, num_recommendations: int, min_promoted: int = 0,
                   min_price: float = 0.0, max_price: float = float('inf')) -> list:
