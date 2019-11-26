@@ -14,6 +14,7 @@ class ImageFeatureExtractor(object):
     '''
     def __init__(self) -> None:
         S3.ensure_file(feature_extractor_neural_net_path)
+        S3.ensure_file(autoencoder_neural_net_path)
         self.fe_model = torch.load(feature_extractor_neural_net_path)
         self.fe_model.eval()
         self.encoder: VAE = torch.load(autoencoder_neural_net_path)
