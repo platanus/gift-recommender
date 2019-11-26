@@ -21,13 +21,13 @@ class RecommenderModel(object):
                  categories='auto', dtype='int', handle_unknown='ignore'), slice(31, None))]
         )
 
-    def load_product_vectors(self, filepath: str) -> None:
-        vectors = f'{filepath}.npy'
-        indeces = f'{filepath}_index.pkl'
+    def load_product_vectors(self, filename: str) -> None:
+        vectors = f'{filename}.npy'
+        indexes = f'{filename}_index.pkl'
         S3.ensure_file(vectors)
-        S3.ensure_file(indeces)
+        S3.ensure_file(indexes)
         self._product_vector = np.load(vectors)
-        with open(indeces, 'rb') as f:
+        with open(indexes, 'rb') as f:
             self.product_vector_index = pickle.load(f)
         self.col_transformer.fit(self._product_vector)
 
