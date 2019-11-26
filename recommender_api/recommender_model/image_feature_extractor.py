@@ -2,22 +2,27 @@ import torch
 from PIL import Image
 from torchvision import transforms
 from .s3_manager import S3
+from .image_autoencoder_model import VAE
 
-neural_net_path = 'efficientnet_b0_fe.pth.tar'
+feature_extractor_neural_net_path = 'efficientnet_b0_fe.pth.tar'
+autoencoder_neural_net_path = 'img_feature_autoencoder.pth.tar'
 
 
 class ImageFeatureExtractor(object):
     '''
     Extracts features from image
     '''
-    def __init__(self, model_path: str = neural_net_path) -> None:
-        S3.ensure_file(model_path)
-        self.model = torch.load(model_path)
-        self.model.eval()
+    def __init__(self) -> None:
+        S3.ensure_file(feature_extractor_neural_net_path)
+        self.fe_model = torch.load(feature_extractor_neural_net_path)
+        self.fe_model.eval()
+        self.encoder: VAE = torch.load(autoencoder_neural_net_path)
+        self.encoder.eval()
         print('Image model loaded!')
 
     def compute_vector(self, image_tensor):
-        return self.model(image_tensor)[0, :, 0, 0].detach().numpy()
+        raw_features = self.fe_model(image_tensor)[0, :, 0, 0]
+        return self.encoder.encode(raw_features)[0].detach().numpy()
 
     @staticmethod
     def tensor_from_image(image) -> torch.Tensor:
