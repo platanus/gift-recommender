@@ -15,6 +15,7 @@ class Product(db.Model):
     promoted = db.Column(db.Boolean)
     deleted = db.Column(db.Boolean)
     attachments = db.relationship('ActiveStorageAttachments', backref='product', lazy=True)
+    display = db.Column(db.Boolean)
 
     @staticmethod
     def get_all() -> list:
