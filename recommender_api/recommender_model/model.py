@@ -3,6 +3,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
+from scipy import sparse
 import heapq
 from .s3_manager import S3
 import pickle
@@ -13,11 +14,11 @@ class RecommenderModel(object):
         self.preproc = Preprocessor()
         self.product_vector_index: dict = {}
         self._product_vector: np.array
-        self.initial_dimensions: int = 1292
+        self.initial_dimensions: int = 32
         self.col_transformer = ColumnTransformer(
-            [("num_standardize", StandardScaler(), slice(0, 1291)),  # First 1291 dims are numerical
+            [("num_standardize", StandardScaler(), slice(0, 31)),  # First 31 dims are numerical
              ("store_category", OneHotEncoder(
-                 categories='auto', dtype='int', handle_unknown='ignore'), slice(1291, None))]
+                 categories='auto', dtype='int', handle_unknown='ignore'), slice(31, None))]
         )
 
     def load_product_vectors(self, filepath: str) -> None:
@@ -46,8 +47,11 @@ class RecommenderModel(object):
     def get_product_vector(self, product: 'Product') -> np.array:
         if product.id not in self.product_vector_index:
             self.add_product_vector(product)
-        return self.col_transformer.transform(
+        res = self.col_transformer.transform(
             [self._product_vector[self.product_vector_index[product.id]]])
+        if isinstance(res, sparse.csr.csr_matrix):
+            res = res.todense()
+        return res
 
     def add_product_vector(self, product: 'Product') -> None:
         self.product_vector_index[product.id] = len(self._product_vector)
