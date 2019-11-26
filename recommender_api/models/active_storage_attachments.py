@@ -12,5 +12,6 @@ class ActiveStorageAttachments(db.Model):
 
     @staticmethod
     def get_image_blob_from_product(product_id: int) -> int:
-        return ActiveStorageAttachments.query.filter_by(name='image', record_type='Product',
+        return ActiveStorageAttachments.query.filter_by(name='recommender_image',
+                                                        record_type='Product',
                                                         record_id=product_id).first().blob_id
