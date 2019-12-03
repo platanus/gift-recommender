@@ -2,6 +2,7 @@ from gensim.models import KeyedVectors
 import numpy as np
 from .s3_manager import S3
 from .image_feature_extractor import ImageFeatureExtractor
+from ..models import genders, ages  # noqa T484
 
 embeddings = 'embeddings-xs-model.vec'
 
@@ -19,9 +20,11 @@ class Preprocessor(object):
     def compute_vector(self, product) -> np.array:
         name_vector = self.compute_name_vector(product)
         price_vector = self.compute_price_vector(product)
-        store_vector = self.compute_store_vector(product)
         image_vector = self.compute_image_vector(product)
-        return np.concatenate((name_vector, image_vector, price_vector, store_vector), axis=None)
+        gender_vector = self.compute_gender_vector(product)
+        age_vector = self.compute_age_vector(product)
+        return np.concatenate((name_vector, image_vector, price_vector, gender_vector, age_vector),
+                              axis=None)
 
     def get_vector(self, word: str) -> np.array:
         try:
@@ -42,11 +45,29 @@ class Preprocessor(object):
 
     @staticmethod
     def compute_price_vector(product) -> np.array:
+        if product.price is None:
+            return np.zeros(1)
         return np.array([product.price])
 
     @staticmethod
-    def compute_store_vector(product) -> np.array:
-        return np.array([product.store_id])
+    def compute_gender_vector(product) -> np.array:
+        if product.gender is None:
+            return np.zeros(2)
+        if product.gender == genders['either']:
+            return np.ones(2)
+        result = np.zeros(2)
+        result[product.gender - 1] = 1
+        return result
+
+    @staticmethod
+    def compute_age_vector(product) -> np.array:
+        if product.age is None:
+            return np.zeros(3)
+        if product.age == ages['any']:
+            return np.ones(3)
+        result = np.zeros(3)
+        result[product.age - 1] = 1
+        return result
 
 
 if __name__ == '__main__':
