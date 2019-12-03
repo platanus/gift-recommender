@@ -1,5 +1,18 @@
 from . import db, ActiveStorageAttachments, ActiveStorageBlob
 
+genders = {
+    'either': 0,
+    'male': 1,
+    'female': 2
+}
+
+ages = {
+    'any': 0,
+    'kid': 1,
+    'teen': 2,
+    'adult': 3
+}
+
 
 class Product(db.Model):
     __tablename__ = 'products'
@@ -16,6 +29,9 @@ class Product(db.Model):
     deleted = db.Column(db.Boolean)
     attachments = db.relationship('ActiveStorageAttachments', backref='product', lazy=True)
     display = db.Column(db.Boolean)
+    gender = db.Column(db.Integer)
+    age = db.Column(db.Integer)
+    novelty = db.Column(db.Integer)
 
     @staticmethod
     def get_all() -> list:
