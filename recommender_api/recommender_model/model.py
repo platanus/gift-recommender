@@ -1,6 +1,5 @@
 from .preprocessor import Preprocessor
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler
 from ..models import Product, ProductAction, Store  # noqa T484
 import numpy as np
 from scipy import sparse
@@ -14,12 +13,8 @@ class RecommenderModel(object):
         self.preproc = Preprocessor()
         self.product_vector_index: dict = {}
         self._product_vector: np.array
-        self.initial_dimensions: int = 32
-        self.col_transformer = ColumnTransformer(
-            [("num_standardize", StandardScaler(), slice(0, 31)),  # First 31 dims are numerical
-             ("store_category", OneHotEncoder(
-                 categories='auto', dtype='int', handle_unknown='ignore'), slice(31, None))]
-        )
+        self.dimensions: int = 36
+        self.col_transformer = StandardScaler()
 
     def load_product_vectors(self, filename: str) -> None:
         vectors = f'{filename}.npy'
@@ -38,7 +33,7 @@ class RecommenderModel(object):
 
     def load_products(self) -> None:
         products = Product.get_all()
-        self._product_vector = np.empty((len(products), self.initial_dimensions))
+        self._product_vector = np.empty((len(products), self.dimensions))
         for index, product in enumerate(products):
             self._product_vector[index] = self.preproc.compute_vector(product)
             self.product_vector_index[product.id] = index
@@ -56,7 +51,7 @@ class RecommenderModel(object):
     def add_product_vector(self, product: 'Product') -> None:
         self.product_vector_index[product.id] = len(self._product_vector)
         vector = self.preproc.compute_vector(product)
-        self.col_transformer.named_transformers_['num_standardize'].partial_fit([vector[:-1]])
+        self.col_transformer.partial_fit([vector])
         self._product_vector = np.append(self._product_vector, [vector], axis=0)
 
     def recommend(self, receiver_id: int, num_recommendations: int, min_promoted: int = 0,
