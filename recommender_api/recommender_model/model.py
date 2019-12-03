@@ -70,7 +70,7 @@ class RecommenderModel(object):
         priority_queue: list = []
         for product in candidate_products:
             heapq.heappush(priority_queue,
-                           (-cosine_similarity(receiver_vector, self.get_product_vector(product)),
+                           (self.compute_score(receiver_vector, product),
                             not is_product_promoted(product), product.id, product))
         recommended_products: list = []
         non_promoted_filler_products = []
@@ -92,6 +92,12 @@ class RecommenderModel(object):
         liked_products_vectors = np.array(
             [self.get_product_vector(Product.get(product_id)) for product_id in receiver_likes])
         return np.average(liked_products_vectors, axis=0)
+
+    def compute_score(self, receiver_vector: np.array, product: Product) -> float:
+        score: float = -cosine_similarity(receiver_vector, self.get_product_vector(product))
+        if product.novelty is None:
+            return score
+        return score * (1 + (product.novelty - 3) / 5)
 
     @staticmethod
     def default_recommendation(
