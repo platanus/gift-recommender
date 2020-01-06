@@ -51,3 +51,23 @@ AWS Bucket (Rails app)
 * `AWS_RAILS_SECRET_ACCESS_KEY`
 * `AWS_RAILS_REGION`
 * `RAILS_BUCKET_NAME`
+
+**Parts and pieces & How to upgrade:**
+
+The main components in the system are:
+
+**image feature extractor**:
+Creates a vector of features from the given image. It has two models internally, the *feature extractor neural net* (FENN), which produces a higher dimensional representation and the *autoencoder* which takes that representation and compresses it to a lower dimensionality. The feature extractor currently is an EfficientNetB0 trained with ImageNet. The Autoencoder is a simple implementation of a variational autoencoder trained with Depto51 products.
+
+How to further train the autoencode:
+
+To generate a new version of the autoencoder weights you can run the `img_vae_train.py` script for which you will need a csv (`img_vectors.csv`) containing the features. 
+
+A standard procedure could be:
+1. Compute the features from the images of all products using the FENN
+2. Save them in a file named `img_vectors.csv` where each row corresponds to the features of a single image
+3. Run the `img_vae_train.py` script
+4. Upload the new weights to the corresponding S3 bucket
+
+**text feature extractor**:
+Creates a vector of features from the given text. It is used in `preprocessor.py` to compute a feature vector from the product name. The models uses word2vec embeddings trained with text in spanish. To update the weights simply upload the new weights to S3 and update the `embeddings` variable in `preprocessor.py` (or simply upload them with the name `embeddings-xs-model.vec`).
