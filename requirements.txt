@@ -35,7 +35,7 @@ nltk==3.4.5
 numpy==1.17.1
 pandas==0.25.1
 pep8-naming==0.8.2
-Pillow==6.2.1
+Pillow==8.3.2
 plac==0.9.6
 preshed==2.0.1
 psycopg2==2.8.3
